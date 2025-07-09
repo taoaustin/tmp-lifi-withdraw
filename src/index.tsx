@@ -4,6 +4,20 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { PrivyProvider } from "@privy-io/react-auth";
+import {
+  arbitrum,
+  avalanche,
+  base,
+  blast,
+  bsc,
+  gnosis,
+  linea,
+  mainnet,
+  optimism,
+  polygon,
+  scroll,
+  zksync,
+} from "viem/chains";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -15,6 +29,20 @@ root.render(
       appId="cmcwfqltd0062kz0lzksrkioa"
       config={{
         appearance: { walletChainType: "ethereum-only" },
+        supportedChains: [
+          arbitrum,
+          avalanche,
+          base,
+          blast,
+          bsc,
+          gnosis,
+          linea,
+          mainnet,
+          optimism,
+          polygon,
+          scroll,
+          zksync,
+        ],
       }}
     >
       <App />
