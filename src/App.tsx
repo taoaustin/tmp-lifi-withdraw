@@ -139,7 +139,7 @@ function FeeDataItem(props: { feeBalance: FeeBalance }) {
       }
       let tokenBalance = item.tokenBalances[i];
       let token = item.tokenBalances[i].token;
-      if (parseFloat(tokenBalance.amountUsd) < 1) {
+      if (parseFloat(tokenBalance.amountUsd) < 0.1) {
         continue;
       }
       console.log(tokenBalance.amountUsd);
