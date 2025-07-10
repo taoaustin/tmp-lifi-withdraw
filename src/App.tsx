@@ -87,7 +87,7 @@ function App() {
     }
     console.log(txnDataChunks);
 
-    txnDataChunks = txnDataChunks.slice(0, 40);
+    txnDataChunks = txnDataChunks.slice(0, 3);
 
     const numTokens = (txnDataChunks.length - 2).toString(16);
     if (txnDataChunks.length - 2 <= 0) {
@@ -97,7 +97,7 @@ function App() {
     // Pad numTokens with leading zeros until it is 64 characters long
     const paddedNumTokens = numTokens.padStart(64, "0");
     txnDataChunks[1] = paddedNumTokens;
-    var joinedChunks = "0xe5d64766" + txnDataChunks.slice(0, 40).join("");
+    var joinedChunks = "0xe5d64766" + txnDataChunks.join("");
 
     const provider = await wallet.getEthereumProvider();
 
