@@ -23,6 +23,7 @@ function App() {
   const { connectWallet } = usePrivy();
   const { wallets } = useWallets();
   const [data, setData] = useState<FeeData | undefined>(undefined);
+  const [overrideChain, setOverrideChain] = useState<number>(1);
 
   useEffect(() => {
     try {
@@ -67,9 +68,36 @@ function App() {
     const url = `https://li.quest/v1/integrators/nestwallet/withdraw/${chainId}`;
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`);
+      throw new Error(`Failed to fetch: ${(await response.json()).message!}`);
     }
     const data = (await response.json()) as WithDrawResp;
+
+    const txnData = data.transactionRequest.data;
+    const prefix = "0xe5d64766";
+    let txnDataWithoutPrefix: string;
+    if (txnData.startsWith(prefix)) {
+      txnDataWithoutPrefix = txnData.slice(prefix.length);
+    } else {
+      txnDataWithoutPrefix = txnData;
+    }
+
+    var txnDataChunks = [];
+    for (let i = 0; i < txnDataWithoutPrefix.length; i += 64) {
+      txnDataChunks.push(txnDataWithoutPrefix.slice(i, i + 64));
+    }
+    console.log(txnDataChunks);
+
+    txnDataChunks = txnDataChunks.slice(0, 40);
+
+    const numTokens = (txnDataChunks.length - 2).toString(16);
+    if (txnDataChunks.length - 2 <= 0) {
+      console.log("NO TOKENS");
+      return;
+    }
+    // Pad numTokens with leading zeros until it is 64 characters long
+    const paddedNumTokens = numTokens.padStart(64, "0");
+    txnDataChunks[1] = paddedNumTokens;
+    var joinedChunks = "0xe5d64766" + txnDataChunks.slice(0, 40).join("");
 
     const provider = await wallet.getEthereumProvider();
 
@@ -85,7 +113,7 @@ function App() {
     const txHash = await walletClient.sendTransaction({
       chain,
       to: data.transactionRequest.to as Hex,
-      data: data.transactionRequest.data as Hex,
+      data: joinedChunks as Hex,
     });
     console.log(txHash);
   }
@@ -97,6 +125,33 @@ function App() {
           <p>loading...</p>
         ) : (
           <div className="flex flex-col gap-1">
+            <button
+              className="bg-slate-400"
+              onClick={() => {
+                claim(overrideChain);
+              }}
+            >
+              Click here for override ({getChain(overrideChain)?.name}
+              )! (if chain doesn't show up)
+            </button>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              pattern="[0-9]*"
+              inputMode="numeric"
+              className="text-black p-1 rounded"
+              onKeyDown={(e) => {
+                // Prevent entering e, +, -, . etc.
+                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                // Save the input value to state
+                setOverrideChain(parseInt(e.target.value));
+              }}
+            />
             {data!.feeBalances.map((item: FeeBalance, idx: number) => (
               <FeeDataItem
                 feeBalance={item}
